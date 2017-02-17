@@ -28,23 +28,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
-#if STANDALONE
-using System.Reflection;
-
-
-// to allow fast ngen
-[assembly: AssemblyTitle("OAuth.dll")]
-[assembly: AssemblyDescription("A simple manager for the OAuth 1.0A authentication protocol.")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Dino Chiesa")]
-[assembly: AssemblyProduct("Tools")]
-[assembly: AssemblyCopyright("Copyright © Dino Chiesa 2011,2012")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion("1.1.0.0")]
-#endif
-
-
 namespace OneRosterOAuth
 {
     /// <summary>

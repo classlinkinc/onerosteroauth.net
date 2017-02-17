@@ -34,11 +34,12 @@ namespace OneRosterOAuth
         }
 
         /// <summary>
-        /// Simple function to perform GET request
+        /// Make request ASYNC
+        /// uses HttpClient
         /// </summary>
         /// <param name="url">input pre-encoded url, including parameters (eg: limit=1)</param>
-        /// <returns></returns>
-        public async Task<HttpResponseMessage> makeRequest(string url)
+        /// <returns>HttpResponseMessage</returns>
+        public async Task<HttpResponseMessage> makeRequestAsync(string url)
         {
             try
             {
@@ -57,6 +58,22 @@ namespace OneRosterOAuth
                     RequestMessage = new HttpRequestMessage(HttpMethod.Get, e.Message)
                 };
             }
+        }
+
+        /// <summary>
+        /// Make request synchronously
+        /// Uses WebRequest
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns>HttpWebResponse</returns>
+        public HttpWebResponse makeRequest(string url)
+        {
+            var request = (HttpWebRequest) WebRequest.Create(url);
+            request.Method = "GET";
+            request.ContentType = "application/json";
+            var authz = _oauthManager.generateAuthzHeader(url, "GET");
+            request.Headers.Add("Authorization", authz);
+            return (HttpWebResponse) request.GetResponse();
         }
     }
 }
