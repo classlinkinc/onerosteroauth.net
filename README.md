@@ -13,16 +13,16 @@ var connection = new OneRosterConnection(oneRosterKey, oneRosterSecret);
 
 // Hit users endpoint, requesting only 1 active user
 // use OneRosterConnection.urlEncode for OAuth-safe url encoding
-var filter = "filter=" + connection.urlEncode("status='active'");
+var filter = "filter=" + connection.UrlEncode("status='active'");
 var url = "https://example.oneroster.com/learningdata/v1/users?limit=1&" + filter;
 
 // Can use either await or Task.WaitAll
 
 	// using await 
-	HttpResponseMessage response = await connection.makeRequest(url);
+	HttpResponseMessage response = await connection.MakeRequest(url);
 	
 	// using Task.WaitAll
-	var task = connection.makeRequest(url);
+	var task = connection.MakeRequest(url);
 	Task.WaitAll(task);
 	HttpResponseMessage response = task.Result;
 
