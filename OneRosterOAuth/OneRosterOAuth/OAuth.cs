@@ -24,7 +24,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -102,8 +104,8 @@ namespace OneRosterOAuth
                 ["callback"] = "about:blank",
                 ["consumer_key"] = "",
                 ["consumer_secret"] = "",
-                ["timestamp"] = generateTimeStamp(),
-                ["nonce"] = generateNonce(),
+                ["timestamp"] = GenerateTimeStamp(),
+                ["nonce"] = GenerateNonce(),
                 ["signature_method"] = "HMAC-SHA1",
                 ["signature"] = "",
                 ["token"] = "",
@@ -245,7 +247,7 @@ namespace OneRosterOAuth
         /// </summary>
         ///
         /// <returns>The timestamp, in string form.</returns>
-        private static string generateTimeStamp()
+        private static string GenerateTimeStamp()
         {
             TimeSpan ts = DateTime.UtcNow - Epoch;
             return Convert.ToInt64(ts.TotalSeconds).ToString();
@@ -259,13 +261,13 @@ namespace OneRosterOAuth
         ///     Each new request should get a new, current timestamp, and a
         ///     nonce. This helper method does both of those things. This gets
         ///     called before generating an authorization header, as for example
-        ///     when the user of this class calls <see cref='acquireRequestToken(string,string)'/>.
+        ///     when the user of this class calls <see cref='AcquireRequestToken'/>.
         ///   </para>
         /// </remarks>
-        private void newRequest()
+        private void NewRequest()
         {
-            _params["nonce"] = generateNonce();
-            _params["timestamp"] = generateTimeStamp();
+            _params["nonce"] = GenerateNonce();
+            _params["timestamp"] = GenerateTimeStamp();
         }
 
         /// <summary>
@@ -296,7 +298,7 @@ namespace OneRosterOAuth
         ///   </para>
         /// </remarks>
         /// <returns>the nonce</returns>
-        private string generateNonce()
+        private string GenerateNonce()
         {
             var sb = new StringBuilder();
             for (var i = 0; i < 8; i++)
@@ -337,7 +339,7 @@ namespace OneRosterOAuth
         ///
         /// <returns>A Dictionary containing the set of
         /// parameter names and associated values</returns>
-        private static Dictionary<string, string> extractQueryParameters(string queryString)
+        private static Dictionary<string, string> ExtractQueryParameters(string queryString)
         {
             if (queryString.StartsWith("?"))
                 queryString = queryString.Remove(0, 1);
@@ -416,7 +418,7 @@ namespace OneRosterOAuth
         /// </code>
         /// </example>
         /// <returns>the Url-encoded version of that string</returns>
-        public static string urlEncode(string value)
+        public static string UrlEncode(string value)
         {
             var result = new StringBuilder();
             foreach (var symbol in value)
@@ -463,7 +465,7 @@ namespace OneRosterOAuth
         /// dictionary, either. Just a collection of KeyValuePair.</param>
         ///
         /// <returns>a string representing the parameters</returns>
-        private static string encodeRequestParameters(IEnumerable<KeyValuePair<string, string>> p)
+        private static string EncodeRequestParameters(IEnumerable<KeyValuePair<string, string>> p)
         {
             var sb = new StringBuilder();
             foreach (var item in p.OrderBy(x => x.Key))
@@ -472,7 +474,7 @@ namespace OneRosterOAuth
                     !item.Key.EndsWith("secret"))
                     sb.AppendFormat("oauth_{0}=\"{1}\", ",
                                     item.Key,
-                                    urlEncode(item.Value));
+                                    UrlEncode(item.Value));
             }
 
             return sb.ToString().TrimEnd(' ').TrimEnd(',');
@@ -564,20 +566,20 @@ namespace OneRosterOAuth
         ///    response is query-param encoded. In other words,
         ///    poauth_token=foo&amp;something_else=bar.
         ///  </returns>
-        public OAuthResponse acquireRequestToken(string uri, string method)
+        public OAuthResponse AcquireRequestToken(string uri, string method)
         {
-            newRequest();
-            var authzHeader = getAuthorizationHeader(uri, method);
+            NewRequest();
+            var authzHeader = GetAuthorizationHeader(uri, method);
 
             // prepare the token request
-            var request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(uri);
+            var request = (HttpWebRequest)WebRequest.Create(uri);
             request.Headers.Add("Authorization", authzHeader);
             request.Method = method;
 
-            using (var response = (System.Net.HttpWebResponse)request.GetResponse())
+            using (var response = (HttpWebResponse)request.GetResponse())
             {
                 // ReSharper disable once AssignNullToNotNullAttribute
-                using (var reader = new System.IO.StreamReader(response.GetResponseStream()))
+                using (var reader = new StreamReader(response.GetResponseStream()))
                 {
                     var r = new OAuthResponse(reader.ReadToEnd());
                     this["token"] = r["oauth_token"];
@@ -618,7 +620,7 @@ namespace OneRosterOAuth
         ///   </para>
         /// </remarks>
         ///
-        /// <seealso cref='generateAuthzHeader'/>
+        /// <seealso cref='GenerateAuthzHeader'/>
         ///
         /// <param name="uri">The "verify credentials" endpoint for the
         /// service to communicate with, via an OAuth-authenticated
@@ -636,10 +638,10 @@ namespace OneRosterOAuth
         ///
         /// <returns>The OAuth authorization header parameter that has been
         /// generated given all the oauth input parameters.</returns>
-        public string generateCredsHeader(string uri, string method, string realm)
+        public string GenerateCredsHeader(string uri, string method, string realm)
         {
-            newRequest();
-            var authzHeader = getAuthorizationHeader(uri, method, realm);
+            NewRequest();
+            var authzHeader = GetAuthorizationHeader(uri, method, realm);
             return authzHeader;
         }
 
@@ -689,7 +691,7 @@ namespace OneRosterOAuth
         ///   </code>
         /// </example>
         ///
-        /// <seealso cref='generateCredsHeader'/>
+        /// <seealso cref='GenerateCredsHeader'/>
         ///
         /// <param name="uri">The target URI that the application will connet
         /// to, via an OAuth-protected protocol. </param>
@@ -699,14 +701,14 @@ namespace OneRosterOAuth
         ///
         /// <returns>The OAuth authorization header that has been generated
         /// given all the oauth input parameters.</returns>
-        public string generateAuthzHeader(string uri, string method)
+        public string GenerateAuthzHeader(string uri, string method)
         {
-            newRequest();
-            var authzHeader = getAuthorizationHeader(uri, method);
+            NewRequest();
+            var authzHeader = GetAuthorizationHeader(uri, method);
             return authzHeader;
         }
 
-        private string getAuthorizationHeader(string uri, string method, string realm = null)
+        private string GetAuthorizationHeader(string uri, string method, string realm = null)
         {
             if (string.IsNullOrEmpty(_params["consumer_key"]))
                 throw new ArgumentNullException("consumer_key");
@@ -714,19 +716,19 @@ namespace OneRosterOAuth
             if (string.IsNullOrEmpty(_params["signature_method"]))
                 throw new ArgumentNullException("signature_method");
 
-            sign(uri, method);
+            Sign(uri, method);
 
-            var erp = encodeRequestParameters(_params);
+            var erp = EncodeRequestParameters(_params);
             return (string.IsNullOrEmpty(realm))
                 ? "OAuth, " + erp
                 : $"OAuth, realm=\"{realm}\", " + erp;
         }
 
 
-        private void sign(string uri, string method)
+        private void Sign(string uri, string method)
         {
-            var signatureBase = getSignatureBase(uri, method);
-            HashAlgorithm hash = getHash();
+            var signatureBase = GetSignatureBase(uri, method);
+            HashAlgorithm hash = GetHash();
 
             var dataBuffer = Encoding.ASCII.GetBytes(signatureBase);
             var hashBytes = hash.ComputeHash(dataBuffer);
@@ -738,7 +740,7 @@ namespace OneRosterOAuth
         /// Formats the list of request parameters into "signature base" string as
         /// defined by RFC 5849.  This will then be MAC'd with a suitable hash.
         /// </summary>
-        private string getSignatureBase(string url, string method)
+        private string GetSignatureBase(string url, string method)
         {
             // normalize the URI
             var uri = new Uri(url);
@@ -753,7 +755,7 @@ namespace OneRosterOAuth
             var sb = new StringBuilder();
             sb.Append(method)
                 .Append('&')
-                .Append(urlEncode(normUrl))
+                .Append(UrlEncode(normUrl))
                 .Append('&');
 
             // The parameters follow. This must include all oauth params
@@ -761,7 +763,7 @@ namespace OneRosterOAuth
             // have a distinct set of query params.
 
             // first, get the query params
-            var p = extractQueryParameters(uri.Query);
+            var p = ExtractQueryParameters(uri.Query);
 
             // add to that list all non-empty oauth params
             foreach (var p1 in _params)
@@ -776,7 +778,7 @@ namespace OneRosterOAuth
                 {
                     // workitem 15756 - handle non-oob scenarios
                     p.Add("oauth_" + p1.Key,
-                          (p1.Key == "callback") ? urlEncode(p1.Value) : p1.Value);
+                          (p1.Key == "callback") ? UrlEncode(p1.Value) : p1.Value);
                 }
             }
 
@@ -789,19 +791,19 @@ namespace OneRosterOAuth
             }
 
             // append the UrlEncoded version of that string to the sigbase
-            sb.Append(urlEncode(sb1.ToString().TrimEnd('&')));
+            sb.Append(UrlEncode(sb1.ToString().TrimEnd('&')));
             var result = sb.ToString();
 
             return result;
         }
 
 
-        private HashAlgorithm getHash()
+        private HashAlgorithm GetHash()
         {
             if (this["signature_method"] != "HMAC-SHA1")
                 throw new NotImplementedException();
 
-            var keystring = $"{urlEncode(this["consumer_secret"])}&{urlEncode(this["token_secret"])}";
+            var keystring = $"{UrlEncode(this["consumer_secret"])}&{UrlEncode(this["token_secret"])}";
             return new HMACSHA1
             {
                 Key = Encoding.ASCII.GetBytes(keystring)
@@ -833,7 +835,7 @@ namespace OneRosterOAuth
         ///   All of the text in the response. This is useful if the app wants
         ///   to do its own parsing.
         /// </summary>
-        public string allText { get; set; }
+        public string AllText { get; set; }
         private readonly Dictionary<string, string> _params;
 
         /// <summary>
@@ -847,7 +849,7 @@ namespace OneRosterOAuth
         /// </summary>
         internal OAuthResponse(string alltext)
         {
-            allText = alltext;
+            AllText = alltext;
             _params = new Dictionary<string, string>();
             var kvpairs = alltext.Split('&');
             foreach (var pair in kvpairs)
