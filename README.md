@@ -19,10 +19,10 @@ var url = "https://example.oneroster.com/learningdata/v1/users?limit=1&" + filte
 // Can use either await or Task.WaitAll
 
 	// using await 
-	HttpResponseMessage response = await connection.makeRequest(url);
+	HttpResponseMessage response = await connection.MakeRequest(url);
 	
 	// using Task.WaitAll
-	var task = connection.makeRequest(url);
+	var task = connection.MakeRequest(url);
 	Task.WaitAll(task);
 	HttpResponseMessage response = task.Result;
 
