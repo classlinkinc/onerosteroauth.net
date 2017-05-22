@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>ClassLink.OneRosterOAuth</id>
+    <version>1.0.3</version>
+    <authors>Cody Robibero</authors>
+    <owners>ClassLink</owners>
+    <projectUrl>https://github.com/classlinkinc/onerosteroauth.net</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>OneRoster OAuth .Net Plugin</description>
+    <releaseNotes>Changed Assembly Version</releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <tags>ClassLink OneRoster OAuth</tags>
+  </metadata>
+</package>
